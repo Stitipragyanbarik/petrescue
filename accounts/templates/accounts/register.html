@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+{% extends 'accounts/base.html' %}
+
+{% block title %}Register - PetRescue{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Create account</h2>
+    <p class="lead">Register a new account to adopt pets and manage requests.</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">{{ form.username.label_tag }}{{ form.username }}</div>
+        <div class="form-row">{{ form.email.label_tag }}{{ form.email }}</div>
+        <div class="form-row">{{ form.password1.label_tag }}{{ form.password1 }}</div>
+        <div class="form-row">{{ form.password2.label_tag }}{{ form.password2 }}</div>
+        <div class="form-row"><button class="btn-primary" type="submit">Create account</button></div>
+    </form>
+    <p class="muted-link">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+</div>
+{% endblock %}
