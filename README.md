@@ -10,6 +10,53 @@ The outcomes include a fully functional website built with HTML, CSS, Django, an
 - Pet Registration & Admin Management Module
 - Pet Status Inquiry & Notification Module
 - Testing, Review, and Documentation
+wa
+## Setup Instructions
+
+### Prerequisites
+- Python 3.8 or higher
+- Django 4.0 or higher
+- MySQL or SQLite database
+- Git
+
+### Installation
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/petrescue.git
+   cd petrescue
+   ```
+
+2. Create a virtual environment:
+   ```
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+4. Set up the database:
+   - For SQLite (default): No additional setup required.
+   - For MySQL: Update settings.py with your database credentials and run migrations.
+
+5. Run migrations:
+   ```
+   python manage.py migrate
+   ```
+
+### Running the Application
+1. Start the development server:
+   ```
+   python manage.py runserver
+   ```
+
+2. Open your browser and navigate to `http://127.0.0.1:8000/`
+
+### Additional Commands
+- Create superuser: `python manage.py createsuperuser`
+- Run tests: `python manage.py test`
 
 ## Week-wise Module Implementation and High-Level Requirements
 ### Weeks 1-2: Database Design & User Management Module
