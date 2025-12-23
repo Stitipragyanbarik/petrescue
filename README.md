@@ -63,3 +63,9 @@ wa
 - Design appropriate relational databases needed to fulfill the requirement.
 - Set up a database to store Users, Pets, etc.
 - Develop APIs and Pages for User Registration & Login functionalities.
+
+## Weeks 3-4: Pet Registration &amp; Admin Management Module
+-Develop APIs for users to raise a request for found pets or lost pets.
+- Include input fields for pet details such as type, breed, color, location found, and
+contact information.
+- Allow admins to update request statuses (e.g., &quot;Accepted&quot; , “Rejected”).
