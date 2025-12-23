@@ -65,32 +65,61 @@
         .navbar .nav-links a:hover {
             background-color: rgba(255,255,255,0.1);
             transform: translateY(-2px);
-        }
-
-        /* Hero Section */
+        }        /* Hero Section */
         .hero {
             height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1450778869180-41d0601e046e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80') center/cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: white;
             padding: 0 20px;
+            color: white;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            width: 100%;
+        }
+
+        .hero-images {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 400px;
+        }
+
+        .hero-images img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .hero-images img:hover {
+            transform: scale(1.05);
+        }
+
+        .hero-content {
+            flex: 1;
+            text-align: left;
         }
 
         .hero-content h1 {
             font-size: 3.5rem;
             margin-bottom: 1rem;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .hero-content p {
+        }        .hero-content p {
             font-size: 1.3rem;
             margin-bottom: 2rem;
             max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            margin-left: 0;
+            margin-right: 0;
         }
 
         .btn {
@@ -256,12 +285,25 @@
             padding-top: 2rem;
             border-top: 1px solid #34495e;
             color: #95a5a6;
-        }
-
-        /* Responsive Design */
+        }        /* Responsive Design */
         @media (max-width: 768px) {
             .navbar .nav-links {
                 display: none;
+            }
+
+            .hero-container {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .hero-images {
+                max-width: 100%;
+                order: 2;
+            }
+
+            .hero-content {
+                order: 1;
+                text-align: center;
             }
 
             .hero-content h1 {
@@ -286,6 +328,10 @@
                 font-size: 2rem;
             }
 
+            .hero-images img {
+                height: 150px;
+            }
+
             .btn {
                 display: block;
                 margin: 10px auto;
@@ -301,9 +347,13 @@
             <a href="{% url 'home' %}" class="logo">🐾 Pet Rescue</a>
             <ul class="nav-links">
                 <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'pets:lost_pets' %}">Lost Pets</a></li>
+                <li><a href="{% url 'pets:found_pets' %}">Found Pets</a></li>
+                <li><a href="{% url 'pets:adoption_pets' %}">Adoption</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'pets:report_pet' %}">Report Pet</a></li>
-                    <li><a href="{% url 'pets:image_check' %}">Check Image</a></li>
+                    {% if user.is_staff and request.path != '/pets/admin/pending/' %}
+                        <li><a href="/pets/admin/pending/">Admin Dashboard</a></li>
+                    {% endif %}
                     <li><a href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
                     <li><a href="{% url 'login' %}">Login</a></li>
@@ -311,20 +361,23 @@
                 {% endif %}
             </ul>
         </div>
-    </nav>
-
-    <!-- Hero Section -->
+    </nav>    <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-content">
-            <h1>Find Your Lost Pet or Help Reunite Pets with Their Owners</h1>
-            <p>Join our community dedicated to reuniting lost pets with their families using advanced image recognition technology.</p>
-            {% if user.is_authenticated %}
-                <a href="{% url 'pets:report_pet' %}" class="btn">Report a Pet</a>
-                <a href="{% url 'pets:image_check' %}" class="btn btn-secondary">Check Image</a>
-            {% else %}
-                <a href="{% url 'register' %}" class="btn">Get Started</a>
-                <a href="{% url 'login' %}" class="btn btn-secondary">Login</a>
-            {% endif %}
+        <div class="hero-container">
+            <div class="hero-images">
+                <img src="https://static.vecteezy.com/system/resources/thumbnails/039/915/434/small/ai-generated-friendly-portrait-of-dogs-and-cats-on-a-white-background-photo.jpeg" alt="Friendly Portrait of Dogs and Cats">
+            </div>
+            <div class="hero-content">
+                <h1>Find Your Lost Pet or Help Reunite Pets with Their Owners</h1>
+                <p>Join our community dedicated to reuniting lost pets with their families using advanced image recognition technology.</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'pets:report_pet' %}" class="btn">Report a Pet</a>
+                    <a href="{% url 'pets:image_check' %}" class="btn btn-secondary">Find Lost Pet</a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn">Get Started</a>
+                    <a href="{% url 'login' %}" class="btn btn-secondary">Login</a>
+                {% endif %}
+            </div>
         </div>
     </section>
 
@@ -381,9 +434,12 @@
                 <h3>Quick Links</h3>
                 <ul class="footer-links">
                     <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'pets:lost_pets' %}">Lost Pets</a></li>
+                    <li><a href="{% url 'pets:found_pets' %}">Found Pets</a></li>
+                    <li><a href="{% url 'pets:adoption_pets' %}">Adoption</a></li>
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'pets:report_pet' %}">Report Pet</a></li>
-                        <li><a href="{% url 'pets:image_check' %}">Check Image</a></li>
+                        <li><a href="{% url 'pets:image_check' %}">Find Lost Pet</a></li>
                     {% else %}
                         <li><a href="{% url 'login' %}">Login</a></li>
                         <li><a href="{% url 'register' %}">Register</a></li>
@@ -392,8 +448,8 @@
             </div>
             <div class="footer-section">
                 <h3>Contact Us</h3>
-                <p>Email: support@petrescue.com</p>
-                <p>Phone: (555) 123-PETS</p>
+                <p>Email: stitipragyanbarik@gmail.com</p>
+                <p>Phone: +91 7205749435</p>
                 <div class="social-links">
                     <a href="#"><i class="fab fa-facebook"></i></a>
                     <a href="#"><i class="fab fa-twitter"></i></a>
@@ -402,7 +458,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2024 Pet Rescue. All rights reserved.</p>
+            <p>&copy; 2025 Pet Rescue. All rights reserved.</p>
         </div>
     </footer>
 </body>

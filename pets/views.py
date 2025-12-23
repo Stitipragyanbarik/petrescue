@@ -716,7 +716,7 @@ def image_check(request):
                                 matches.append({'pet': candidate, 'distance': d})
                         except:
                             pass
-
+                
                 if not matches:
                     qs = Pet.objects.filter(image__icontains=uploaded_name)
                     for c in qs:
@@ -724,13 +724,58 @@ def image_check(request):
 
             except:
                 pass
-
     else:
         form = ImageCheckForm()
-
+    
     return render(request, 'pets/image_check.html', {
         'form': form,
         'matches': matches,
         'uploaded_hash': uploaded_hash,
         'uploaded_name': uploaded_name,
+    })
+
+
+# -------------------------------------------
+# PET LISTING VIEWS BY CATEGORY
+# -------------------------------------------
+
+def lost_pets(request):
+    """Display all approved lost pets."""
+    pets = Pet.objects.filter(
+        status='lost', 
+        approval_status='approved'
+    ).order_by('-created_at')
+    
+    return render(request, 'pets/lost_pets.html', {
+        'pets': pets,
+        'page_title': 'Lost Pets',
+        'page_description': 'Help reunite these lost pets with their families'
+    })
+
+
+def found_pets(request):
+    """Display all approved found pets."""
+    pets = Pet.objects.filter(
+        status='found', 
+        approval_status='approved'
+    ).order_by('-created_at')
+    
+    return render(request, 'pets/found_pets.html', {
+        'pets': pets,
+        'page_title': 'Found Pets',
+        'page_description': 'These pets have been found and are looking for their owners'
+    })
+
+
+def adoption_pets(request):
+    """Display all approved pets available for adoption."""
+    pets = Pet.objects.filter(
+        status='adoption', 
+        approval_status='approved'
+    ).order_by('-created_at')
+    
+    return render(request, 'pets/adoption_pets.html', {
+        'pets': pets,
+        'page_title': 'Pets Available for Adoption',
+        'page_description': 'Give these wonderful pets a loving home'
     })

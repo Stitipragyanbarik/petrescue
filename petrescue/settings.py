@@ -84,25 +84,33 @@ WSGI_APPLICATION = 'petrescue.wsgi.application'
 
 
 # Database
-# Default: MySQL configuration for local development using user 'stiti'.
+# MySQL configuration for local development using user 'stiti'.
 # Make sure you have created the MySQL database and user before running migrations.
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'petrescue_db',
+        'USER': 'stiti',
+        'PASSWORD': 'admin@1234',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
 
 # Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+# MySQL configuration for local development using user 'stiti'.
+# Make sure you have created the MySQL database and user before running migrations.
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'petrescue_db',
+        'USER': 'stiti',
+        'PASSWORD': 'admin@1234',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+}
 
 
 # Password validation
@@ -151,3 +159,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Where to redirect after logout (will send users to home page)
 LOGOUT_REDIRECT_URL = 'home'
+
+
+
+

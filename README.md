@@ -16,7 +16,7 @@ wa
 ### Prerequisites
 - Python 3.8 or higher
 - Django 4.0 or higher
-- MySQL or SQLite database
+- MySQL  database
 - Git
 
 ### Installation

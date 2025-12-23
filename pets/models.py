@@ -16,21 +16,47 @@ class Pet(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pets')
     name = models.CharField(max_length=100)
     species = models.CharField(max_length=50, blank=True)
+    breed = models.CharField(max_length=50, blank=True) 
+    gender = models.CharField(max_length=10, choices=[('Male','Male'),('Female','Female')], default='Male')
     age = models.PositiveIntegerField(null=True, blank=True)
+    color = models.CharField(max_length=50, blank=True)
     description = models.TextField(blank=True)
     # Image of the pet (optional)
     image = models.ImageField(upload_to='pets/', blank=True, null=True)
-    # status: lost (reported by owner) or found (reported by rescuer)
+    location = models.CharField(max_length=255, blank=True)
+    # status: lost (reported by owner), found (reported by rescuer), or adoption (available for adoption)
     STATUS_CHOICES = [
         ('lost', 'Lost'),
         ('found', 'Found'),
-        ('available', 'Available'),
+        ('adoption', 'Available for Adoption'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='lost')
+    
+    # approval status for admin moderation
+    APPROVAL_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    approval_status = models.CharField(max_length=20, choices=APPROVAL_STATUS_CHOICES, default='pending')
+    
     # contact phone for owners/rescuers to be displayed when match occurs
     contact_phone = models.CharField(max_length=30, blank=True)
     # store a perceptual hash (hex) to speed up matching
     image_hash = models.CharField(max_length=64, blank=True, null=True, db_index=True)
+    # report date when the pet was reported
+    report_date = models.DateTimeField(auto_now_add=True)
+    # animal condition choices
+    CONDITION_CHOICES = [
+        ('healthy', 'Healthy'),
+        ('injured', 'Injured'),
+        ('sick', 'Sick'),
+        ('critical', 'Critical'),
+    ]
+    animal_condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default='healthy')
+    # additional fields
+    last_seen_location = models.CharField(max_length=255, blank=True)
+    medical_attention_needed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
