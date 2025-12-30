@@ -779,3 +779,206 @@ def adoption_pets(request):
         'page_title': 'Pets Available for Adoption',
         'page_description': 'Give these wonderful pets a loving home'
     })
+
+
+# -------------------------------------------
+# PET SEARCH AND INQUIRY VIEWS
+# -------------------------------------------
+
+@login_required
+def search_pets(request):
+    """Search for both lost and found pets based on user criteria."""
+    from .forms import PetSearchForm
+    from .models import PetSearchQuery, AdminNotification
+    from django.db.models import Q
+    
+    form = PetSearchForm()
+    pets = []
+    search_performed = False
+    
+    if request.method == 'POST':
+        form = PetSearchForm(request.POST)
+        if form.is_valid():
+            search_performed = True
+            
+            # Build search query - include both lost and found pets that are approved
+            query = Q(approval_status='approved') & (Q(status='lost') | Q(status='found'))
+            
+            # Add filters based on form data
+            if form.cleaned_data.get('species'):
+                query &= Q(species__icontains=form.cleaned_data['species'])
+            
+            if form.cleaned_data.get('breed'):
+                query &= Q(breed__icontains=form.cleaned_data['breed'])
+            
+            if form.cleaned_data.get('color'):
+                query &= Q(color__icontains=form.cleaned_data['color'])
+            
+            if form.cleaned_data.get('location'):
+                query &= Q(location__icontains=form.cleaned_data['location'])
+            
+            if form.cleaned_data.get('gender'):
+                query &= Q(gender=form.cleaned_data['gender'])
+            
+            if form.cleaned_data.get('age_min'):
+                query &= Q(age__gte=form.cleaned_data['age_min'])
+            
+            if form.cleaned_data.get('age_max'):
+                query &= Q(age__lte=form.cleaned_data['age_max'])
+            
+            # Execute search and separate results by status
+            all_pets = Pet.objects.filter(query).order_by('-created_at')
+            pets = {
+                'found': all_pets.filter(status='found'),
+                'lost': all_pets.filter(status='lost'),
+                'total_count': all_pets.count()
+            }
+            
+            # Save search query for tracking
+            search_query = PetSearchQuery.objects.create(
+                user=request.user,
+                species=form.cleaned_data.get('species', ''),
+                breed=form.cleaned_data.get('breed', ''),
+                color=form.cleaned_data.get('color', ''),
+                location=form.cleaned_data.get('location', ''),
+                gender=form.cleaned_data.get('gender', ''),
+                age_min=form.cleaned_data.get('age_min'),
+                age_max=form.cleaned_data.get('age_max'),
+                results_count=pets['total_count']
+            )
+            
+            # Create admin notification for search inquiry
+            AdminNotification.objects.create(
+                notification_type='search_inquiry',
+                title=f'New Pet Search by {request.user.username}',
+                message=f'User {request.user.username} searched for pets with criteria: {form.cleaned_data}. Found {pets["total_count"]} results.',
+                user=request.user,
+                search_query=search_query
+            )
+    
+    return render(request, 'pets/search_pets.html', {
+        'form': form,
+        'pets': pets,
+        'search_performed': search_performed,
+        'page_title': 'Search for Your Lost Pet',
+        'page_description': 'Search through reported pets to see if your lost pet has been found or reported by others'
+    })
+
+
+@login_required
+def pet_inquiry(request, pet_id):
+    """Allow users to inquire about a specific pet."""
+    from .forms import PetInquiryForm
+    from .models import PetInquiry, AdminNotification
+    from django.contrib import messages
+    
+    pet = get_object_or_404(Pet, id=pet_id, status='found', approval_status='approved')
+    
+    # Check if user already made an inquiry about this pet
+    existing_inquiry = PetInquiry.objects.filter(inquirer=request.user, pet=pet).first()
+    
+    if request.method == 'POST':
+        if existing_inquiry:
+            messages.warning(request, 'You have already made an inquiry about this pet.')
+            return redirect('pets:pet_inquiry', pet_id=pet.id)
+        
+        form = PetInquiryForm(request.POST)
+        if form.is_valid():
+            inquiry = form.save(commit=False)
+            inquiry.inquirer = request.user
+            inquiry.pet = pet
+            inquiry.save()
+            
+            # Create admin notification
+            AdminNotification.objects.create(
+                notification_type='contact_request',
+                title=f'New Pet Inquiry from {request.user.username}',
+                message=f'User {request.user.username} made an inquiry about {pet.name} (ID: {pet.id}). Contact: {inquiry.contact_email}',
+                user=request.user,
+                pet=pet
+            )
+            
+            messages.success(request, 'Your inquiry has been submitted successfully. The admin will review it and facilitate contact with the pet finder.')
+            return redirect('pets:found_pets')
+    else:
+        form = PetInquiryForm()
+    
+    return render(request, 'pets/pet_inquiry.html', {
+        'form': form,
+        'pet': pet,
+        'existing_inquiry': existing_inquiry,
+        'page_title': f'Inquire about {pet.name}',
+        'page_description': f'Send an inquiry about {pet.name} to see if this is your lost pet'
+    })
+
+
+@login_required
+def admin_notifications(request):
+    """Admin view to see all notifications."""
+    from .models import AdminNotification
+    
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    # Mark notifications as read when viewed
+    if request.method == 'POST':
+        notification_id = request.POST.get('notification_id')
+        if notification_id:
+            try:
+                notification = AdminNotification.objects.get(id=notification_id)
+                notification.is_read = True
+                notification.save()
+                messages.success(request, 'Notification marked as read.')
+            except AdminNotification.DoesNotExist:
+                messages.error(request, 'Notification not found.')
+        return redirect('pets:admin_notifications')
+    
+    notifications = AdminNotification.objects.all().order_by('-created_at')
+    unread_count = notifications.filter(is_read=False).count()
+    
+    return render(request, 'pets/admin_notifications.html', {
+        'notifications': notifications,
+        'unread_count': unread_count,
+        'page_title': 'Admin Notifications',
+        'page_description': 'Manage system notifications and user activities'
+    })
+
+
+@login_required
+def admin_inquiries(request):
+    """Admin view to manage pet inquiries."""
+    from .models import PetInquiry
+    
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    if request.method == 'POST':
+        inquiry_id = request.POST.get('inquiry_id')
+        action = request.POST.get('action')
+        
+        try:
+            inquiry = PetInquiry.objects.get(id=inquiry_id)
+            if action == 'mark_responded':
+                inquiry.status = 'responded'
+                inquiry.save()
+                messages.success(request, f'Inquiry marked as responded.')
+            elif action == 'close':
+                inquiry.status = 'closed'
+                inquiry.save()
+                messages.success(request, f'Inquiry closed.')
+        except PetInquiry.DoesNotExist:
+            messages.error(request, 'Inquiry not found.')
+        
+        return redirect('pets:admin_inquiries')
+    
+    inquiries = PetInquiry.objects.all().order_by('-created_at')
+    pending_count = inquiries.filter(status='pending').count()
+    
+    return render(request, 'pets/admin_inquiries.html', {
+        'inquiries': inquiries,
+        'pending_count': pending_count,
+        'page_title': 'Pet Inquiries Management',
+        'page_description': 'Manage user inquiries about found pets'
+    })

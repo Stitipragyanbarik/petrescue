@@ -16,4 +16,9 @@ urlpatterns = [
     path('lost/', views.lost_pets, name='lost_pets'),
     path('found/', views.found_pets, name='found_pets'),
     path('adoption/', views.adoption_pets, name='adoption_pets'),
+    # Pet Search and Inquiry URLs
+    path('search/', views.search_pets, name='search_pets'),
+    path('inquiry/<int:pet_id>/', views.pet_inquiry, name='pet_inquiry'),
+    path('admin/notifications/', views.admin_notifications, name='admin_notifications'),
+    path('admin/inquiries/', views.admin_inquiries, name='admin_inquiries'),
 ]

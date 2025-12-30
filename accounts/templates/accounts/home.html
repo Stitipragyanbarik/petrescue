@@ -344,12 +344,12 @@
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="container">
-            <a href="{% url 'home' %}" class="logo">🐾 Pet Rescue</a>
-            <ul class="nav-links">
+            <a href="{% url 'home' %}" class="logo">🐾 Pet Rescue</a>            <ul class="nav-links">
                 <li><a href="{% url 'home' %}">Home</a></li>
                 <li><a href="{% url 'pets:lost_pets' %}">Lost Pets</a></li>
                 <li><a href="{% url 'pets:found_pets' %}">Found Pets</a></li>
                 <li><a href="{% url 'pets:adoption_pets' %}">Adoption</a></li>
+                <li><a href="{% url 'pets:search_pets' %}">Search Pets</a></li>
                 {% if user.is_authenticated %}
                     {% if user.is_staff and request.path != '/pets/admin/pending/' %}
                         <li><a href="/pets/admin/pending/">Admin Dashboard</a></li>
