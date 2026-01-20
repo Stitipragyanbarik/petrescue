@@ -136,3 +136,77 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"ContactMessage({self.contact_request.id} from={self.sender.username})"
+
+
+class PetSearchQuery(models.Model):
+    """Model to track user search queries for lost pets."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='search_queries')
+    species = models.CharField(max_length=50, blank=True)
+    breed = models.CharField(max_length=50, blank=True)
+    color = models.CharField(max_length=50, blank=True)
+    location = models.CharField(max_length=255, blank=True)
+    gender = models.CharField(max_length=10, choices=[('Male','Male'),('Female','Female')], blank=True)
+    age_min = models.PositiveIntegerField(null=True, blank=True)
+    age_max = models.PositiveIntegerField(null=True, blank=True)
+    search_date = models.DateTimeField(auto_now_add=True)
+    results_count = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        ordering = ['-search_date']
+    
+    def __str__(self):
+        return f"Search by {self.user.username} on {self.search_date.strftime('%Y-%m-%d')}"
+
+
+class AdminNotification(models.Model):
+    """Model for admin notifications about user activities and system events."""
+    NOTIFICATION_TYPES = [
+        ('search_inquiry', 'Search Inquiry'),
+        ('potential_match', 'Potential Match Found'),
+        ('contact_request', 'Contact Request'),
+        ('new_pet_report', 'New Pet Report'),
+        ('match_approved', 'Match Approved by Owner'),
+        ('match_rejected', 'Match Rejected by Owner'),
+    ]
+    
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='triggered_notifications', null=True, blank=True)
+    pet = models.ForeignKey('Pet', on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    search_query = models.ForeignKey(PetSearchQuery, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    match_request = models.ForeignKey(MatchRequest, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.notification_type}: {self.title}"
+
+
+class PetInquiry(models.Model):
+    """Model to track inquiries made by users about specific pets."""
+    inquirer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pet_inquiries')
+    pet = models.ForeignKey('Pet', on_delete=models.CASCADE, related_name='inquiries')
+    inquiry_message = models.TextField()
+    contact_email = models.EmailField()
+    contact_phone = models.CharField(max_length=30, blank=True)
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('responded', 'Responded'),
+        ('closed', 'Closed'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['inquirer', 'pet']  # Prevent duplicate inquiries
+    
+    def __str__(self):
+        return f"Inquiry by {self.inquirer.username} about {self.pet.name}"
