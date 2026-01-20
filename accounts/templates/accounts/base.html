@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PetRescue{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{% static 'accounts/css/styles.css' %}">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -19,6 +20,10 @@
                     <a href="#">Welcome, {{ user.username }}</a>
                     {% if user.is_superuser %}
                         <a href="{% url 'pets:admin_pending' %}">Admin Dashboard</a>
+                        <a href="{% url 'pets:admin_notifications' %}" class="notification-link">
+                            <i class="fas fa-bell"></i>
+                            <span id="unread-count" class="badge">0</span>
+                        </a>
                     {% endif %}
                     <a class="btn-ghost" href="{% url 'logout' %}">Logout</a>
                 {% else %}
@@ -53,5 +58,17 @@
     <footer class="site-footer">
         <div class="inner">© {{ now.year }} PetRescue</div>
     </footer>
+    <script>
+        function updateUnreadCount() {
+            fetch('/pets/admin/unread-count/')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('unread-count').textContent = data.unread_count;
+                })
+                .catch(error => console.error('Error fetching unread count:', error));
+        }
+        setInterval(updateUnreadCount, 30000); // every 30 seconds
+        updateUnreadCount(); // initial call
+    </script>
 </body>
 </html>
